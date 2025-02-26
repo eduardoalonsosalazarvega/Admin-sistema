@@ -19,3 +19,6 @@ Set-Service -Name sshd -StartupType 'Automatic'
 # Activamos la regla del firewall para permitir conexiones SSH
 Write-Output "Configurando el firewall para SSH..."
 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (SSH)' -Enabled True -Protocol TCP -Action Allow -LocalPort 22
+
+# Confirmación final
+Write-Output "El servicio SSH se ha instalado y configurado correctamente."
