@@ -1,4 +1,4 @@
-# ¡Hola amigos de YouTube! Vamos a aprender cómo activar el servicio SSH en Windows 😎
+# ¡Hola amigos de YouTube! Vamos a aprender cómo activar el servicio SSH en Windows 
 
 # Instalamos el servidor OpenSSH
 Write-Output "Instalando OpenSSH Server..."
