@@ -97,15 +97,43 @@ mostrar_menu() {
     while true; do
         echo "===== MENÚ DE ADMINISTRACIÓN FTP ====="
         echo "1) Agregar un usuario FTP"
-        echo "2) Salir"
+        echo "2) Cambiar un usuario de grupo"
+        echo "3) Salir"
         read -p "Seleccione una opción: " opcion
 
         case $opcion in
             1) agregar_usuario ;;
-            2) echo "Saliendo..."; exit 0 ;;
+            2) cambiargrupo;;
+            3) echo "Saliendo..."; exit 0 ;;
             *) echo "Opción no válida, intente de nuevo." ;;
         esac
     done
+}
+cambiargrupo(){
+
+read -p "escriba al usuario a quien desea cambiar de grupo " user
+read -p "escriba el nuevo grupo de ese usuario " group
+
+grupoactual=$(groups "$user" | awk '{print $5}')
+
+{
+sudo umount /home/$user/$grupoactual
+} || {
+
+echo "hubo un problema"
+exit 1
+
+}
+
+sudo deluser $user $grupoactual
+sudo adduser $user $group
+
+sudo mv /home/$user/$grupoactual /home/$user/$group
+
+sudo mount --bind /home/ftp/grupos/$group /home/$user/$group
+
+sudo chgrp $group /home/$user/$group
+
 }
 
 # Reiniciar servicio vsftpd
