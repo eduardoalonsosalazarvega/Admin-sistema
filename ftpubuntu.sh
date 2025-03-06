@@ -20,24 +20,22 @@ if ! systemctl list-unit-files | grep -q "vsftpd"; then
     sudo groupadd reprobados
     sudo groupadd recursadores
     sudo groupadd ftpusers  
-
+    
     # Modificar configuración de vsftpd
-    sudo sed -i 's/^anonymous_enable=.*/anonymous_enable=YES/' $VSFTPD_CONF
-    sudo sed -i 's/^#\(local_enable=YES\)/\1/' $VSFTPD_CONF
-    sudo sed -i 's/^#\(write_enable=YES\)/\1/' $VSFTPD_CONF
-    sudo sed -i 's/^#\(chroot_local_user=YES\)/\1/' $VSFTPD_CONF
-
+    sudo sed -i 's/^anonymous_enable=.*/anonymous_enable=NO/' $VSFTPD_CONF
+    sudo sed -i 's/^#local_enable=YES/local_enable=YES/' $VSFTPD_CONF
+    sudo sed -i 's/^#write_enable=YES/write_enable=YES/' $VSFTPD_CONF
+    sudo sed -i 's/^#chroot_local_user=YES/chroot_local_user=YES/' $VSFTPD_CONF
+    
     # Agregar opciones si no existen
     sudo grep -qxF "allow_writeable_chroot=YES" $VSFTPD_CONF || echo "allow_writeable_chroot=YES" | sudo tee -a $VSFTPD_CONF
-    sudo grep -qxF "anon_root=$FTP_ROOT/anon" $VSFTPD_CONF || echo "anon_root=$FTP_ROOT/anon" | sudo tee -a $VSFTPD_CONF
-
+    
     # Crear estructura de carpetas
     echo "Creando estructura de directorios..."
     sudo mkdir -p "$PUBLIC_DIR" "$USERS_DIR" "$GROUPS_DIR"
     sudo mkdir -p "$GROUPS_DIR/reprobados"
     sudo mkdir -p "$GROUPS_DIR/recursadores"
-    sudo mkdir -p "$FTP_ROOT/anon/publica"
-
+    
     # Configurar permisos
     sudo chmod 770 "$GROUPS_DIR/reprobados" "$GROUPS_DIR/recursadores"
     sudo chown root:reprobados "$GROUPS_DIR/reprobados"
@@ -45,11 +43,11 @@ if ! systemctl list-unit-files | grep -q "vsftpd"; then
     sudo chmod 755 /home/ftp
     sudo chmod 775 "$PUBLIC_DIR"
     sudo chown root:ftpusers "$PUBLIC_DIR"
-
+    
     # Reiniciar servicio vsftpd
     sudo systemctl restart vsftpd
     sudo systemctl enable vsftpd
-
+    
     # Configurar firewall
     sudo ufw allow 21/tcp
 fi
@@ -65,23 +63,17 @@ agregar_usuario() {
     sudo passwd "$FTP_USER"
     sudo usermod -aG "$FTP_GROUP" "$FTP_USER"
     sudo usermod -aG "ftpusers" "$FTP_USER"
-
+    
     # Crear carpetas del usuario
     echo "Configurando carpetas para $FTP_USER..."
     sudo mkdir -p "$USERS_DIR/$FTP_USER/publica"
     sudo mkdir -p "$USERS_DIR/$FTP_USER/$FTP_GROUP"
-
-    # Enlazar carpetas
-    sudo mkdir -p "$USERS_DIR/$FTP_USER/$FTP_USER"
-    sudo chmod 700 "$USERS_DIR/$FTP_USER/$FTP_USER"
-    sudo chown -R "$FTP_USER:$FTP_USER" "$USERS_DIR/$FTP_USER/"
-    sudo mount --bind "$GROUPS_DIR/$FTP_GROUP" "$USERS_DIR/$FTP_USER/$FTP_GROUP"
-    sudo mount --bind "$PUBLIC_DIR" "$USERS_DIR/$FTP_USER/publica"
-
+    
     # Configurar permisos
     sudo chmod 750 "$USERS_DIR/$FTP_USER"
     sudo chown -R "$FTP_USER:ftpusers" "$USERS_DIR/$FTP_USER"
-
+    sudo chmod 700 "$USERS_DIR/$FTP_USER"
+    
     echo "Usuario $FTP_USER creado exitosamente."
 }
 
