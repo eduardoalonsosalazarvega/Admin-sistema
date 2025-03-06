@@ -6,7 +6,7 @@ echo "network:
     enp0s3:
       dhcp4: true
     enp0s8:
-      addresses: [192.168.0.15/24]
+      addresses: [192.168.0.16/24]
       nameservers:
-        addresses: [8.8.8.8, 1.1.1.1]" | sudo tee /etc/netplan/50-cloud-init.yaml > /dev/null
-echo "Fijando la IP $192.168.0.15"
+        addresses: [8.8.8.8, 1.1.1.1]" | sudo tee /etc/netplan/01-network-manager-all.yml > /dev/null
+echo "Fijando la IP $192.168.0.16"
