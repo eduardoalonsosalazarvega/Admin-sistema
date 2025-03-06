@@ -109,21 +109,36 @@ mostrar_menu() {
         esac
     done
 }
-cambiargrupo(){
+cambiargrupo() {
+    read -p "Escriba el usuario a quien desea cambiar de grupo: " user
+    read -p "Escriba el nuevo grupo de ese usuario: " group
 
-read -p "escriba al usuario a quien desea cambiar de grupo " user
-read -p "escriba el nuevo grupo de ese usuario " group
+    grupoactual=$(id -gn "$user")  # Obtener grupo principal actual
 
-grupoactual=$(groups "$user" | awk '{print $5}')
+    echo "Cambiando usuario $user de grupo $grupoactual a $group..."
 
-{
-sudo umount /home/$user/$grupoactual
-} || {
+    # Desmontar carpeta anterior
+    if mountpoint -q "/srv/ftp/$user/$grupoactual"; then
+        sudo umount "/srv/ftp/$user/$grupoactual"
+    else
+        echo "Advertencia: No se encontró un punto de montaje en /srv/ftp/$user/$grupoactual"
+    fi
 
-echo "hubo un problema"
-exit 1
+    # Cambiar grupo principal del usuario
+    sudo usermod -g "$group" "$user"
 
+    # Mover la carpeta del grupo
+    sudo mv "/srv/ftp/$user/$grupoactual" "/srv/ftp/$user/$group"
+
+    # Montar la nueva carpeta
+    sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
+
+    # Asignar permisos al nuevo grupo
+    sudo chgrp "$group" "/srv/ftp/$user/$group"
+
+    echo "Usuario $user cambiado a grupo $group correctamente."
 }
+
 
 sudo deluser $user $grupoactual
 sudo adduser $user $group
