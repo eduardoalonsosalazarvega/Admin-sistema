@@ -20,11 +20,12 @@ else
     sudo sed -i 's/^#\(local_enable=YES\)/\1/' /etc/vsftpd.conf
     sudo sed -i 's/^#\(write_enable=YES\)/\1/' /etc/vsftpd.conf
     sudo sed -i 's/^#\(chroot_local_user=YES\)/\1/' /etc/vsftpd.conf
-
-    sudo tee -a /etc/vsftpd.conf > /dev/null <<EOF
-allow_writeable_chroot=YES
-anon_root=/home/ftp/anon
-EOF
+    echo "allow_writeable_chroot=YES" | sudo tee -a /etc/vsftpd.conf
+    echo "anon_root=/home/ftp/anon" | sudo tee -a /etc/vsftpd.conf
+    #sudo tee -a /etc/vsftpd.conf > /dev/null <<EOF
+#allow_writeable_chroot=YES
+#anon_root=/home/ftp/anon
+#EOF
 fi
 
 # Variables principales
