@@ -53,15 +53,40 @@ sudo chown root:ftpusers "$PUBLIC_DIR"
 # Función para agregar un usuario FTP
 agregar_usuario() {
     read -p "Ingrese el nombre del usuario FTP: " FTP_USER
+    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] ]]; then
+        echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
+        return
+    fi
     read -p "Ingrese el grupo principal del usuario (ej: reprobados, recursadores): " FTP_GROUP
+    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; then
+        echo "Error: Grupo inválido. Debe ser 'reprobados' o 'recursadores'."
+        return
+    fi
 
     # Definir variables del usuario
     user_sub_token=$FTP_USER
     local_root="/srv/ftp/$FTP_USER"
 
     echo "Creando usuario $FTP_USER..."
+    if id "$FTP_USER" &>/dev/null; then
+        echo "Error: El usuario ya existe."
+        return
+    fi
     sudo useradd -m -d "$local_root" -s /usr/sbin/nologin "$FTP_USER"
-    sudo passwd "$FTP_USER"
+    while true; do
+        read -s -p "Ingrese una contraseña para el usuario: " FTP_PASS
+        echo
+        read -s -p "Confirme la contraseña: " FTP_PASS2
+        echo
+        if [[ "$FTP_PASS" != "$FTP_PASS2" ]]; then
+            echo "Error: Las contraseñas no coinciden."
+        elif [[ ${#FTP_PASS} -lt 8 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] ]]; then
+            echo "Error: La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número."
+        else
+            echo "$FTP_USER:$FTP_PASS" | sudo chpasswd
+            break
+        fi
+    done
     sudo usermod -aG "$FTP_GROUP" "$FTP_USER"
     sudo usermod -aG "ftpusers" "$FTP_USER"
 
@@ -94,6 +119,10 @@ cambiar_grupo() {
     sudo pkill -KILL -u "$nombre"
     read -p "Ingrese el nombre del usuario a cambiar de grupo: " nombre
     
+    if [[ -z "$nombre" || "$nombre" =~ [^a-zA-Z0-9_] ]]; then
+        echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
+        return
+    fi
     if ! id "$nombre" &>/dev/null; then
         echo "El usuario no existe."
         return
@@ -117,6 +146,10 @@ cambiar_grupo() {
         nuevo_grupo="reprobados"
     fi
     
+    if [[ -d "$usuario_path/$nuevo_grupo" ]]; then
+        echo "Error: La carpeta del nuevo grupo ya existe."
+        return
+    fi
     sudo mkdir -p "$usuario_path/$nuevo_grupo"
     sudo chown "$nombre:ftp" "$usuario_path/$nuevo_grupo"
     sudo usermod -G "$nuevo_grupo" "$nombre"
@@ -135,7 +168,12 @@ cambiar_grupo() {
     sync
     
     echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
-    sudo systemctl reload vsftpd
+    if ! systemctl is-active --quiet vsftpd; then
+        echo "Error: vsftpd no está activo. Intentando reiniciar..."
+        sudo systemctl restart vsftpd
+    else
+        sudo systemctl reload vsftpd
+    fi
 }
 
 # Función para mostrar el menú
