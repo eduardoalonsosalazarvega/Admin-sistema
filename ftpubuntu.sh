@@ -92,7 +92,6 @@ agregar_usuario() {
     echo "Usuario $FTP_USER agregado correctamente."
 }
 cambiar_grupo() {
-    cambiar_grupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
@@ -135,7 +134,6 @@ cambiar_grupo() {
     echo "El usuario $user ahora solo pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
 
-}
 
 
 # Función para mostrar el menú
