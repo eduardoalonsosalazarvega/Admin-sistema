@@ -124,11 +124,15 @@ cambiar_grupo() {
     # Montar carpetas nuevamente
     sudo fuser -k "$usuario_path/$grupo_actual" || true
     sudo umount -l "$usuario_path/$grupo_actual"
-    sudo rm -r "$usuario_path/$grupo_actual"
+    sleep 1
+    # Eliminar directorio solo si ya no está en uso
+    if ! mountpoint -q "$usuario_path/$grupo_actual"; then
+        sudo rm -r "$usuario_path/$grupo_actual"
+    fi
     sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
     
     echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
-    sudo systemctl restart vsftpd
+    sudo systemctl reload vsftpd
 }
 
 # Función para mostrar el menú
@@ -151,7 +155,7 @@ mostrar_menu() {
 
 # Reiniciar servicio vsftpd
 echo "Reiniciando servicio FTP..."
-sudo systemctl restart vsftpd
+sudo systemctl reload vsftpd
 sudo systemctl enable vsftpd
 
 # Configuración de seguridad
