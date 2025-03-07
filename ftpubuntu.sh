@@ -95,16 +95,23 @@ cambiar_grupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
-    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
+    # Verificar si el usuario existe
+    if ! id "$user" &>/dev/null; then
+        echo "Error: El usuario $user no existe."
+        exit 1
+    fi
 
+    # Verificar si la carpeta del usuario existe
     if [ ! -d "/srv/ftp/$user" ]; then
         echo "Error: La carpeta /srv/ftp/$user no existe."
         exit 1
     fi
 
+    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
+
     # Desmontar y eliminar todas las carpetas de grupos anteriores
     for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
+        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
             if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
@@ -112,9 +119,6 @@ cambiar_grupo() {
             sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar la carpeta solo si existía
         fi
     done
-
-    # Eliminar al usuario de todos los grupos excepto ftpusers
-    sudo usermod -G ftpusers "$user"
 
     # Asignar el nuevo grupo
     sudo usermod -aG "$group" "$user"
@@ -131,8 +135,9 @@ cambiar_grupo() {
     sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
     sudo chmod 750 "/srv/ftp/$user"
 
-    echo "El usuario $user ahora solo pertenece al grupo $group y su carpeta ha sido configurada correctamente."
+    echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
+
 
 
 
