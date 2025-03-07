@@ -109,32 +109,38 @@ mostrar_menu() {
         esac
     done
 }
-cambiargrupo(){
+function cambiargrupo() {
+    read -p "Escriba el usuario a quien desea cambiar de grupo: " user
+    read -p "Escriba el nuevo grupo de ese usuario: " group
 
-read -p "escriba al usuario a quien desea cambiar de grupo " user
-read -p "escriba el nuevo grupo de ese usuario " group
+    # Obtener grupo actual
+    grupoactual=$(id -gn "$user")
 
-grupoactual=$(groups "$user" | awk '{print $5}')
+    # Desmontar el grupo anterior (si está montado)
+    if mountpoint -q "/srv/ftp/$user/$grupoactual"; then
+        if ! sudo umount "/srv/ftp/$user/$grupoactual"; then
+            echo "Error al desmontar $grupoactual"
+            exit 1
+        fi
+    fi
 
-{
-sudo umount /home/$user/$grupoactual
-} || {
+    # Cambiar el grupo primario del usuario
+    sudo usermod -g "$group" "$user"
 
-echo "hubo un problema"
-exit 1
+    # Mover carpeta si existe
+    if [ -d "/srv/ftp/$user/$grupoactual" ]; then
+        sudo mv "/srv/ftp/$user/$grupoactual" "/srv/ftp/$user/$group"
+    fi
 
+    # Montar la nueva carpeta del grupo
+    sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
+
+    # Cambiar el grupo de la carpeta
+    sudo chgrp "$group" "/srv/ftp/$user/$group"
+
+    echo "El usuario $user ahora pertenece a $group."
 }
 
-sudo deluser $user $grupoactual
-sudo adduser $user $group
-
-sudo mv /home/$user/$grupoactual /home/$user/$group
-
-sudo mount --bind /home/ftp/grupos/$group /home/$user/$group
-
-sudo chgrp $group /home/$user/$group
-
-}
 
 # Reiniciar servicio vsftpd
 echo "Reiniciando servicio FTP..."
