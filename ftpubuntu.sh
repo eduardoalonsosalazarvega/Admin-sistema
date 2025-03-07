@@ -113,32 +113,36 @@ function cambiargrupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
-    # Obtener grupo actual
+    # Obtener grupo actual del usuario
     grupoactual=$(id -gn "$user")
 
-    # Desmontar el grupo anterior (si está montado)
+    # Verificar si la carpeta del usuario existe antes de continuar
+    if [ ! -d "/srv/ftp/$user" ]; then
+        echo "Error: La carpeta /srv/ftp/$user no existe."
+        exit 1
+    fi
+
+    # Desmontar el grupo anterior si está montado
     if mountpoint -q "/srv/ftp/$user/$grupoactual"; then
-        if ! sudo umount "/srv/ftp/$user/$grupoactual"; then
-            echo "Error al desmontar $grupoactual"
-            exit 1
-        fi
+        sudo umount "/srv/ftp/$user/$grupoactual" || { echo "Error al desmontar $grupoactual"; exit 1; }
     fi
 
     # Cambiar el grupo primario del usuario
     sudo usermod -g "$group" "$user"
 
-    # Mover carpeta si existe
-    if [ -d "/srv/ftp/$user/$grupoactual" ]; then
-        sudo mv "/srv/ftp/$user/$grupoactual" "/srv/ftp/$user/$group"
+    # Verificar si la carpeta del nuevo grupo existe, si no, crearla
+    if [ ! -d "/srv/ftp/$user/$group" ]; then
+        sudo mkdir -p "/srv/ftp/$user/$group"
     fi
 
     # Montar la nueva carpeta del grupo
     sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
 
-    # Cambiar el grupo de la carpeta
-    sudo chgrp "$group" "/srv/ftp/$user/$group"
+    # Cambiar el grupo de la carpeta del usuario y asegurar permisos adecuados
+    sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
+    sudo chmod 750 "/srv/ftp/$user"
 
-    echo "El usuario $user ahora pertenece a $group."
+    echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
 
 
