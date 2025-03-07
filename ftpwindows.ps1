@@ -4,6 +4,9 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit 1
 }
 
+Write-Host "Fijando IP estática para Servidor FTP" -ForegroundColor Cyan
+New-NetIPAddress -IPAddress "192.168.0.17" -InterfaceAlias "Ethernet 2" -PrefixLength 24
+
 # Instalar IIS y el servicio FTP si no están instalados
 Write-Host "Verificando instalación de IIS y FTP..."
 $features = Get-WindowsFeature
