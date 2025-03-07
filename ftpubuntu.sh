@@ -98,7 +98,7 @@ cambiar_grupo() {
     fi
     
     grupo_actual=""
-    usuario_path="$FTP_ROOT/users/$nombre"
+    usuario_path="/srv/ftp/$nombre"
     if [[ -d "$usuario_path/reprobados" ]]; then
         grupo_actual="reprobados"
     elif [[ -d "$usuario_path/recursadores" ]]; then
