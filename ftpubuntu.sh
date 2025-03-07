@@ -90,6 +90,8 @@ agregar_usuario() {
 
 # Función para cambiar de grupo a un usuario FTP
 cambiar_grupo() {
+    # Cerrar sesión del usuario para evitar bloqueos
+    sudo pkill -KILL -u "$nombre"
     read -p "Ingrese el nombre del usuario a cambiar de grupo: " nombre
     
     if ! id "$nombre" &>/dev/null; then
@@ -126,6 +128,7 @@ cambiar_grupo() {
     sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
     
     echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
+    sudo systemctl restart vsftpd
 }
 
 # Función para mostrar el menú
