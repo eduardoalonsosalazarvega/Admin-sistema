@@ -91,6 +91,8 @@ agregar_usuario() {
 
     echo "Usuario $FTP_USER agregado correctamente."
 }
+
+# Función para cambiar de grupo a un usuario FTP
 cambiar_grupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
@@ -111,7 +113,7 @@ cambiar_grupo() {
 
     # Desmontar todas las carpetas de grupos anteriores
     for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
+        if [ "$grupo" != "ftpusers" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
             if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
@@ -119,9 +121,9 @@ cambiar_grupo() {
         fi
     done
 
-    # Eliminar los grupos anteriores excepto ftpusers y el nuevo grupo
+    # Eliminar los grupos anteriores excepto ftpusers
     for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ]; then
+        if [ "$grupo" != "ftpusers" ]; then
             sudo gpasswd -d "$user" "$grupo"
         fi
     done
@@ -141,32 +143,31 @@ cambiar_grupo() {
     sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
     sudo chmod 750 "/srv/ftp/$user"
 
+    # Crear la carpeta pública si no existe
+    if [ ! -d "/srv/ftp/$user/publica" ]; then
+        sudo mkdir -p "/srv/ftp/$user/publica"
+    fi
+
     echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
-
-
-
-
 
 # Función para mostrar el menú
 mostrar_menu() {
     while true; do
         echo "===== MENÚ DE ADMINISTRACIÓN FTP ====="
         echo "1) Agregar un usuario FTP"
-        echo "2) Cambiar un usuario de grupo"
+        echo "2) Cambiar de grupo a un usuario FTP"
         echo "3) Salir"
         read -p "Seleccione una opción: " opcion
 
         case $opcion in
             1) agregar_usuario ;;
-            2) cambiar_grupo;;
+            2) cambiar_grupo ;;
             3) echo "Saliendo..."; exit 0 ;;
             *) echo "Opción no válida, intente de nuevo." ;;
         esac
     done
 }
-
-
 
 # Reiniciar servicio vsftpd
 echo "Reiniciando servicio FTP..."
