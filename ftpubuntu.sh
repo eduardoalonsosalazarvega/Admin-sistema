@@ -92,6 +92,7 @@ agregar_usuario() {
     echo "Usuario $FTP_USER agregado correctamente."
 }
 cambiar_grupo() {
+    cambiar_grupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
@@ -104,12 +105,12 @@ cambiar_grupo() {
 
     # Desmontar y eliminar todas las carpetas de grupos anteriores
     for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ]; then
+        if [ "$grupo" != "ftpusers" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
             if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
             fi
-            sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar carpeta del grupo anterior
+            sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar la carpeta solo si existía
         fi
     done
 
@@ -132,6 +133,8 @@ cambiar_grupo() {
     sudo chmod 750 "/srv/ftp/$user"
 
     echo "El usuario $user ahora solo pertenece al grupo $group y su carpeta ha sido configurada correctamente."
+}
+
 }
 
 
