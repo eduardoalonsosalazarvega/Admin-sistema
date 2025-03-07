@@ -109,12 +109,12 @@ mostrar_menu() {
         esac
     done
 }
-function cambiargrupo() {
+cambiargrupo() {
     read -p "Escriba el usuario a quien desea cambiar de grupo: " user
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
-    # Obtener grupo actual del usuario
-    grupoactual=$(id -gn "$user")
+    # Obtener todos los grupos a los que pertenece el usuario
+    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
 
     # Verificar si la carpeta del usuario existe antes de continuar
     if [ ! -d "/srv/ftp/$user" ]; then
@@ -122,13 +122,21 @@ function cambiargrupo() {
         exit 1
     fi
 
-    # Desmontar el grupo anterior si está montado
-    if mountpoint -q "/srv/ftp/$user/$grupoactual"; then
-        sudo umount "/srv/ftp/$user/$grupoactual" || { echo "Error al desmontar $grupoactual"; exit 1; }
-    fi
+    # Desmontar todas las carpetas de grupos anteriores
+    for grupo in $grupos_actuales; do
+        if [ "$grupo" != "ftpusers" ]; then
+            if mountpoint -q "/srv/ftp/$user/$grupo"; then
+                echo "Desmontando /srv/ftp/$user/$grupo"
+                sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
+            fi
+        fi
+    done
 
-    # Cambiar el grupo primario del usuario
-    sudo usermod -g "$group" "$user"
+    # Eliminar al usuario de todos los grupos excepto ftpusers
+    sudo usermod -G ftpusers "$user"
+
+    # Asignar el nuevo grupo
+    sudo usermod -aG "$group" "$user"
 
     # Verificar si la carpeta del nuevo grupo existe, si no, crearla
     if [ ! -d "/srv/ftp/$user/$group" ]; then
@@ -142,7 +150,7 @@ function cambiargrupo() {
     sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
     sudo chmod 750 "/srv/ftp/$user"
 
-    echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
+    echo "El usuario $user ahora pertenece solo al grupo $group y su carpeta ha sido configurada correctamente."
 }
 
 
