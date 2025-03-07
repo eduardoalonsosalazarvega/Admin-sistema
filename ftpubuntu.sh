@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Verificar que se ejecute como root
-if [[ $EUID -ne 0 ]]; entonces
+if [[ $EUID -ne 0 ]]; then
     echo "Este script debe ejecutarse como root"
     exit 1
 fi
 
 # Verificar si ya está instalado vsftpd
-if systemctl list-unit-files | grep -q "vsftpd"; entonces
+if systemctl list-unit-files | grep -q "vsftpd"; then
     echo "vsftpd ya está instalado."
 else
     echo "Instalando vsftpd..."
@@ -94,13 +94,13 @@ cambiar_grupo() {
     read -p "Escriba el nuevo grupo de ese usuario: " group
 
     # Verificar si el usuario existe
-    if ! id "$user" &>/dev/null; entonces
+    if ! id "$user" &>/dev/null; then
         echo "Error: El usuario $user no existe."
         exit 1
     fi
 
     # Verificar si la carpeta del usuario existe
-    if [ ! -d "/srv/ftp/$user" ]; entonces
+    if [ ! -d "/srv/ftp/$user" ]; then
         echo "Error: La carpeta /srv/ftp/$user no existe."
         exit 1
     fi
@@ -108,9 +108,9 @@ cambiar_grupo() {
     grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
 
     # Desmontar y eliminar la carpeta del grupo anterior, si existe
-    for grupo en $grupos_actuales; entonces
-        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; entonces
-            if mountpoint -q "/srv/ftp/$user/$grupo"; entonces
+    for grupo in $grupos_actuales; do
+        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
+            if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
             fi
@@ -119,8 +119,8 @@ cambiar_grupo() {
     done
 
     # Eliminar los grupos anteriores excepto ftpusers
-    for grupo en $grupos_actuales; entonces
-        if [ "$grupo" != "ftpusers" ]; entonces
+    for grupo in $grupos_actuales; do
+        if [ "$grupo" != "ftpusers" ]; then
             sudo gpasswd -d "$user" "$grupo"
         fi
     done
@@ -129,7 +129,7 @@ cambiar_grupo() {
     sudo usermod -aG "$group" "$user"
 
     # Crear la carpeta del nuevo grupo si no existe
-    if [ ! -d "/srv/ftp/$user/$group" ]; entonces
+    if [ ! -d "/srv/ftp/$user/$group" ]; then
         sudo mkdir -p "/srv/ftp/$user/$group"
     fi
 
@@ -141,7 +141,7 @@ cambiar_grupo() {
     sudo chmod 750 "/srv/ftp/$user"
 
     # Crear la carpeta pública si no existe
-    if [ ! -d "/srv/ftp/$user/publica" ]; entonces
+    if [ ! -d "/srv/ftp/$user/publica" ]; then
         sudo mkdir -p "/srv/ftp/$user/publica"
     fi
 
@@ -150,19 +150,19 @@ cambiar_grupo() {
 
 # Función para mostrar el menú
 mostrar_menu() {
-    while true; entonces
+    while true; do
         echo "===== MENÚ DE ADMINISTRACIÓN FTP ====="
         echo "1) Agregar un usuario FTP"
         echo "2) Cambiar de grupo a un usuario FTP"
         echo "3) Salir"
         read -p "Seleccione una opción: " opcion
 
-        case $opcion en
+        case $opcion in
             1) agregar_usuario ;;
             2) cambiar_grupo ;;
             3) echo "Saliendo..."; exit 0 ;;
             *) echo "Opción no válida, intente de nuevo." ;;
-        entonces
+        esac
     done
 }
 
