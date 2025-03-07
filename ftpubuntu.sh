@@ -91,6 +91,39 @@ agregar_usuario() {
 
     echo "Usuario $FTP_USER agregado correctamente."
 }
+cambiar_grupo() {
+    read -p "Escriba el usuario a quien desea cambiar de grupo: " user
+    read -p "Escriba el nuevo grupo de ese usuario: " group
+
+    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
+
+    if [ ! -d "/srv/ftp/$user" ]; then
+        echo "Error: La carpeta /srv/ftp/$user no existe."
+        exit 1
+    fi
+
+    for grupo in $grupos_actuales; do
+        if [ "$grupo" != "ftpusers" ]; then
+            if mountpoint -q "/srv/ftp/$user/$grupo"; then
+                echo "Desmontando /srv/ftp/$user/$grupo"
+                sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
+            fi
+        fi
+    done
+
+    sudo usermod -G ftpusers "$user"
+    sudo usermod -aG "$group" "$user"
+
+    if [ ! -d "/srv/ftp/$user/$group" ]; then
+        sudo mkdir -p "/srv/ftp/$user/$group"
+    fi
+
+    sudo mount --bind "$GROUPS_DIR/$group" "/srv/ftp/$user/$group"
+    sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
+    sudo chmod 750 "/srv/ftp/$user"
+
+    echo "El usuario $user ahora pertenece solo al grupo $group y su carpeta ha sido configurada correctamente."
+}
 
 # Función para mostrar el menú
 mostrar_menu() {
@@ -109,49 +142,7 @@ mostrar_menu() {
         esac
     done
 }
-cambiargrupo() {
-    read -p "Escriba el usuario a quien desea cambiar de grupo: " user
-    read -p "Escriba el nuevo grupo de ese usuario: " group
 
-    # Obtener todos los grupos a los que pertenece el usuario
-    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
-
-    # Verificar si la carpeta del usuario existe antes de continuar
-    if [ ! -d "/srv/ftp/$user" ]; then
-        echo "Error: La carpeta /srv/ftp/$user no existe."
-        exit 1
-    fi
-
-    # Desmontar todas las carpetas de grupos anteriores
-    for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ]; then
-            if mountpoint -q "/srv/ftp/$user/$grupo"; then
-                echo "Desmontando /srv/ftp/$user/$grupo"
-                sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
-            fi
-        fi
-    done
-
-    # Eliminar al usuario de todos los grupos excepto ftpusers
-    sudo usermod -G ftpusers "$user"
-
-    # Asignar el nuevo grupo
-    sudo usermod -aG "$group" "$user"
-
-    # Verificar si la carpeta del nuevo grupo existe, si no, crearla
-    if [ ! -d "/srv/ftp/$user/$group" ]; then
-        sudo mkdir -p "/srv/ftp/$user/$group"
-    fi
-
-    # Montar la nueva carpeta del grupo
-    sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
-
-    # Cambiar el grupo de la carpeta del usuario y asegurar permisos adecuados
-    sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
-    sudo chmod 750 "/srv/ftp/$user"
-
-    echo "El usuario $user ahora pertenece solo al grupo $group y su carpeta ha sido configurada correctamente."
-}
 
 
 # Reiniciar servicio vsftpd
