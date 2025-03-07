@@ -90,62 +90,41 @@ agregar_usuario() {
 
 # Función para cambiar de grupo a un usuario FTP
 cambiar_grupo() {
-    read -p "Escriba el usuario a quien desea cambiar de grupo: " user
-    read -p "Escriba el nuevo grupo de ese usuario: " group
-
-    # Verificar si el usuario existe
-    if ! id "$user" &>/dev/null; then
-        echo "Error: El usuario $user no existe."
-        exit 1
+    read -p "Ingrese el nombre del usuario a cambiar de grupo: " nombre
+    
+    if ! id "$nombre" &>/dev/null; then
+        echo "El usuario no existe."
+        return
     fi
-
-    # Verificar si la carpeta del usuario existe
-    if [ ! -d "/srv/ftp/$user" ]; then
-        echo "Error: La carpeta /srv/ftp/$user no existe."
-        exit 1
+    
+    grupo_actual=""
+    usuario_path="$FTP_ROOT/users/$nombre"
+    if [[ -d "$usuario_path/reprobados" ]]; then
+        grupo_actual="reprobados"
+    elif [[ -d "$usuario_path/recursadores" ]]; then
+        grupo_actual="recursadores"
+    else
+        echo "El usuario no tiene grupo asignado."
+        return
     fi
-
-    grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
-
-    # Desmontar y eliminar la carpeta del grupo anterior, si existe
-    for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
-            if mountpoint -q "/srv/ftp/$user/$grupo"; then
-                echo "Desmontando /srv/ftp/$user/$grupo"
-                sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
-            fi
-            sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar la carpeta del grupo anterior
-        fi
-    done
-
-    # Eliminar los grupos anteriores excepto ftpusers
-    for grupo in $grupos_actuales; do
-        if [ "$grupo" != "ftpusers" ]; then
-            sudo gpasswd -d "$user" "$grupo"
-        fi
-    done
-
-    # Asignar el nuevo grupo
-    sudo usermod -aG "$group" "$user"
-
-    # Crear la carpeta del nuevo grupo si no existe
-    if [ ! -d "/srv/ftp/$user/$group" ]; then
-        sudo mkdir -p "/srv/ftp/$user/$group"
+    
+    nuevo_grupo=""
+    if [[ "$grupo_actual" == "reprobados" ]]; then
+        nuevo_grupo="recursadores"
+    else
+        nuevo_grupo="reprobados"
     fi
-
-    # Montar la nueva carpeta del grupo
-    sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
-
-    # Cambiar permisos y dueño de la carpeta del usuario
-    sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
-    sudo chmod 750 "/srv/ftp/$user"
-
-    # Crear la carpeta pública si no existe
-    if [ ! -d "/srv/ftp/$user/publica" ]; then
-        sudo mkdir -p "/srv/ftp/$user/publica"
-    fi
-
-    echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
+    
+    sudo mkdir -p "$usuario_path/$nuevo_grupo"
+    sudo chown "$nombre:ftp" "$usuario_path/$nuevo_grupo"
+    sudo usermod -aG "$nuevo_grupo" "$nombre"
+    
+    # Montar carpetas nuevamente
+    sudo umount "$usuario_path/$grupo_actual"
+    sudo rm -r "$usuario_path/$grupo_actual"
+    sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
+    
+    echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
 }
 
 # Función para mostrar el menú
