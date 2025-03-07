@@ -120,7 +120,8 @@ cambiar_grupo() {
     sudo usermod -aG "$nuevo_grupo" "$nombre"
     
     # Montar carpetas nuevamente
-    sudo umount "$usuario_path/$grupo_actual"
+    sudo fuser -k "$usuario_path/$grupo_actual" || true
+    sudo umount -l "$usuario_path/$grupo_actual"
     sudo rm -r "$usuario_path/$grupo_actual"
     sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
     
