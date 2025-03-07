@@ -53,7 +53,7 @@ sudo chown root:ftpusers "$PUBLIC_DIR"
 # Función para agregar un usuario FTP
 agregar_usuario() {
     read -p "Ingrese el nombre del usuario FTP: " FTP_USER
-    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] ]]; then
+    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] || ${#FTP_USER} -gt 16 || "$FTP_USER" =~ ^(.)\1{5,}$ ]]; then
         echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
         return
     fi
