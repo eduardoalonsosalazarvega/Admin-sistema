@@ -109,14 +109,20 @@ cambiar_grupo() {
 
     grupos_actuales=$(id -Gn "$user" | tr ' ' '\n')
 
-    # Desmontar y eliminar todas las carpetas de grupos anteriores
+    # Desmontar todas las carpetas de grupos anteriores
     for grupo in $grupos_actuales; do
         if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ] && [ -d "/srv/ftp/$user/$grupo" ]; then
             if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
             fi
-            sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar la carpeta solo si existía
+        fi
+    done
+
+    # Eliminar los grupos anteriores excepto ftpusers y el nuevo grupo
+    for grupo in $grupos_actuales; do
+        if [ "$grupo" != "ftpusers" ] && [ "$grupo" != "$group" ]; then
+            sudo gpasswd -d "$user" "$grupo"
         fi
     done
 
@@ -137,6 +143,7 @@ cambiar_grupo() {
 
     echo "El usuario $user ahora pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
+
 
 
 
