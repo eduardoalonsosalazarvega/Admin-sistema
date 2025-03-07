@@ -119,7 +119,7 @@ cambiar_grupo() {
     
     sudo mkdir -p "$usuario_path/$nuevo_grupo"
     sudo chown "$nombre:ftp" "$usuario_path/$nuevo_grupo"
-    sudo usermod -aG "$nuevo_grupo" "$nombre"
+    sudo usermod -G "$nuevo_grupo" "$nombre"
     
     # Montar carpetas nuevamente
     sudo fuser -k "$usuario_path/$grupo_actual" || true
@@ -130,6 +130,9 @@ cambiar_grupo() {
         sudo rm -r "$usuario_path/$grupo_actual"
     fi
     sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
+    sudo chmod 770 "$usuario_path/$nuevo_grupo"
+    sudo chown "$nombre:$nuevo_grupo" "$usuario_path/$nuevo_grupo"
+    sync
     
     echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
     sudo systemctl reload vsftpd
