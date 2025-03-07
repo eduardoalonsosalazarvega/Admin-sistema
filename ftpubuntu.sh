@@ -136,7 +136,7 @@ mostrar_menu() {
 
         case $opcion in
             1) agregar_usuario ;;
-            2) cambiargrupo;;
+            2) cambiar_grupo;;
             3) echo "Saliendo..."; exit 0 ;;
             *) echo "Opción no válida, intente de nuevo." ;;
         esac
