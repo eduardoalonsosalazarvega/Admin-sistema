@@ -102,28 +102,38 @@ cambiar_grupo() {
         exit 1
     fi
 
+    # Desmontar y eliminar todas las carpetas de grupos anteriores
     for grupo in $grupos_actuales; do
         if [ "$grupo" != "ftpusers" ]; then
             if mountpoint -q "/srv/ftp/$user/$grupo"; then
                 echo "Desmontando /srv/ftp/$user/$grupo"
                 sudo umount "/srv/ftp/$user/$grupo" || echo "Error al desmontar $grupo"
             fi
+            sudo rm -rf "/srv/ftp/$user/$grupo"  # Eliminar carpeta del grupo anterior
         fi
     done
 
+    # Eliminar al usuario de todos los grupos excepto ftpusers
     sudo usermod -G ftpusers "$user"
+
+    # Asignar el nuevo grupo
     sudo usermod -aG "$group" "$user"
 
+    # Crear la carpeta del nuevo grupo si no existe
     if [ ! -d "/srv/ftp/$user/$group" ]; then
         sudo mkdir -p "/srv/ftp/$user/$group"
     fi
 
-    sudo mount --bind "$GROUPS_DIR/$group" "/srv/ftp/$user/$group"
+    # Montar la nueva carpeta del grupo
+    sudo mount --bind "/home/ftp/grupos/$group" "/srv/ftp/$user/$group"
+
+    # Cambiar permisos y dueño de la carpeta del usuario
     sudo chown -R "$user:ftpusers" "/srv/ftp/$user"
     sudo chmod 750 "/srv/ftp/$user"
 
-    echo "El usuario $user ahora pertenece solo al grupo $group y su carpeta ha sido configurada correctamente."
+    echo "El usuario $user ahora solo pertenece al grupo $group y su carpeta ha sido configurada correctamente."
 }
+
 
 # Función para mostrar el menú
 mostrar_menu() {
