@@ -11,17 +11,17 @@ if systemctl list-unit-files | grep -q "vsftpd"; then
     echo "vsftpd ya está instalado."
 else
     echo "Instalando vsftpd..."
-    sudo apt update && sudo apt install -y vsftpd 
-    sudo groupadd reprobados
-    sudo groupadd recursadores
-    sudo groupadd ftpusers   
+    apt update && apt install -y vsftpd 
+    groupadd reprobados
+    groupadd recursadores
+    groupadd ftpusers   
 
-    sudo sed -i 's/^anonymous_enable=.*/anonymous_enable=YES/' /etc/vsftpd.conf
-    sudo sed -i 's/^#\(local_enable=YES\)/\1/' /etc/vsftpd.conf
-    sudo sed -i 's/^#\(write_enable=YES\)/\1/' /etc/vsftpd.conf
-    sudo sed -i 's/^#\(chroot_local_user=YES\)/\1/' /etc/vsftpd.conf
-    echo "allow_writeable_chroot=YES" | sudo tee -a /etc/vsftpd.conf
-    echo "anon_root=/home/ftp/anon" | sudo tee -a /etc/vsftpd.conf
+    sed -i 's/^anonymous_enable=.*/anonymous_enable=YES/' /etc/vsftpd.conf
+    sed -i 's/^#\(local_enable=YES\)/\1/' /etc/vsftpd.conf
+    sed -i 's/^#\(write_enable=YES\)/\1/' /etc/vsftpd.conf
+    sed -i 's/^#\(chroot_local_user=YES\)/\1/' /etc/vsftpd.conf
+    echo "allow_writeable_chroot=YES" | tee -a /etc/vsftpd.conf
+    echo "anon_root=/home/ftp/anon" | tee -a /etc/vsftpd.conf
 fi
 
 # Variables principales
@@ -32,15 +32,15 @@ GROUPS_DIR="$FTP_ROOT/grupos"
 VSFTPD_CONF="/etc/vsftpd.conf"
 
 # Crear estructura de carpetas
-sudo mkdir -p "$PUBLIC_DIR" "$USERS_DIR" "$GROUPS_DIR/reprobados" "$GROUPS_DIR/recursadores" "$FTP_ROOT/anon/publica"
+mkdir -p "$PUBLIC_DIR" "$USERS_DIR" "$GROUPS_DIR/reprobados" "$GROUPS_DIR/recursadores" "$FTP_ROOT/anon/publica"
 
 # Configurar permisos
-sudo chmod 770 "$GROUPS_DIR/reprobados" "$GROUPS_DIR/recursadores"
-sudo chown root:reprobados "$GROUPS_DIR/reprobados"
-sudo chown root:recursadores "$GROUPS_DIR/recursadores"
-sudo chmod 755 /home/ftp
-sudo chmod 775 "$PUBLIC_DIR"
-sudo chown root:ftpusers "$PUBLIC_DIR"
+chmod 770 "$GROUPS_DIR/reprobados" "$GROUPS_DIR/recursadores"
+chown root:reprobados "$GROUPS_DIR/reprobados"
+chown root:recursadores "$GROUPS_DIR/recursadores"
+chmod 755 /home/ftp
+chmod 775 "$PUBLIC_DIR"
+chown root:ftpusers "$PUBLIC_DIR"
 
 # Función para agregar usuario
 agregar_usuario() {
@@ -65,7 +65,7 @@ agregar_usuario() {
         return
     fi
 
-    sudo useradd -m -s /usr/sbin/nologin "$FTP_USER"
+    useradd -m -s /usr/sbin/nologin "$FTP_USER"
     
     while true; do
         read -s -p "Ingrese una contraseña para el usuario: " FTP_PASS
@@ -77,13 +77,13 @@ agregar_usuario() {
         elif [[ ${#FTP_PASS} -lt 10 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] || ! "$FTP_PASS" =~ [@#\$%&*] ]]; then
             echo "Error: La contraseña debe tener al menos 10 caracteres, incluyendo mayúsculas, minúsculas, números y un carácter especial (@, #, $, %, &, *)."
         else
-            echo "$FTP_USER:$FTP_PASS" | sudo chpasswd
+            echo "$FTP_USER:$FTP_PASS" | chpasswd
             break
         fi
     done
     
-    sudo usermod -aG "$FTP_GROUP" "$FTP_USER"
-    sudo usermod -aG ftpusers "$FTP_USER"
+    usermod -aG "$FTP_GROUP" "$FTP_USER"
+    usermod -aG ftpusers "$FTP_USER"
     
     echo "Usuario $FTP_USER agregado correctamente."
 }
@@ -106,7 +106,7 @@ mostrar_menu() {
 
 # Configurar firewall
 echo "Configurando firewall..."
-sudo ufw allow 21/tcp
+ufw allow 21/tcp
 
 # Mostrar menú
 mostrar_menu
