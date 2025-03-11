@@ -7,7 +7,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Verificar si ya está instalado vsftpd
-if systemctl list-unit-files | grep -q "vsftpd"; then
+if systemctl list-unit-files | grep -q "vsftpd"; entonces
     echo "vsftpd ya está instalado."
 else
     echo "Instalando vsftpd..."
@@ -53,12 +53,12 @@ sudo chown root:ftpusers "$PUBLIC_DIR"
 # Función para agregar un usuario FTP
 agregar_usuario() {
     read -p "Ingrese el nombre del usuario FTP: " FTP_USER
-    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] || ${#FTP_USER} -gt 16 || "$FTP_USER" =~ ^(.)\1{5,}$ ]]; then
-        echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
+    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] || ${#FTP_USER} -lt 4 || ${#FTP_USER} -gt 16 || "$FTP_USER" =~ ^(.)\1{5,}$ ]]; entonces
+        echo "Error: Nombre de usuario no válido. Debe tener entre 4 y 16 caracteres alfanuméricos o guiones bajos."
         return
     fi
-    read -p "Ingrese el grupo principal del usuario (ej: reprobados, recursadores): " FTP_GROUP
-    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; then
+    read -p "Ingrese el grupo principal del usuario (reprobados, recursadores): " FTP_GROUP
+    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; entonces
         echo "Error: Grupo inválido. Debe ser 'reprobados' o 'recursadores'."
         return
     fi
@@ -68,7 +68,7 @@ agregar_usuario() {
     local_root="/srv/ftp/$FTP_USER"
 
     echo "Creando usuario $FTP_USER..."
-    if id "$FTP_USER" &>/dev/null; then
+    if id "$FTP_USER" &>/dev/null; entonces
         echo "Error: El usuario ya existe."
         return
     fi
@@ -78,9 +78,9 @@ agregar_usuario() {
         echo
         read -s -p "Confirme la contraseña: " FTP_PASS2
         echo
-        if [[ "$FTP_PASS" != "$FTP_PASS2" ]]; then
+        if [[ "$FTP_PASS" != "$FTP_PASS2" ]]; entonces
             echo "Error: Las contraseñas no coinciden."
-        elif [[ ${#FTP_PASS} -lt 8 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] ]]; then
+        elif [[ ${#FTP_PASS} -lt 8 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] ]]; entonces
             echo "Error: La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número."
         else
             echo "$FTP_USER:$FTP_PASS" | sudo chpasswd
@@ -117,11 +117,11 @@ agregar_usuario() {
 cambiar_grupo() {
     read -p "Ingrese el nombre del usuario a cambiar de grupo: " nombre
     
-    if [[ -z "$nombre" || "$nombre" =~ [^a-zA-Z0-9_] ]]; then
+    if [[ -z "$nombre" || "$nombre" =~ [^a-zA-Z0-9_] ]]; entonces
         echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
         return
     fi
-    if ! id "$nombre" &>/dev/null; then
+    if ! id "$nombre" &>/dev/null; entonces
         echo "El usuario no existe."
         return
     fi
@@ -131,7 +131,7 @@ cambiar_grupo() {
 
     grupo_actual=""
     usuario_path="/srv/ftp/$nombre"
-    if [[ -d "$usuario_path/reprobados" ]]; then
+    if [[ -d "$usuario_path/reprobados" ]]; entonces
         grupo_actual="reprobados"
     elif [[ -d "$usuario_path/recursadores" ]]; entonces
         grupo_actual="recursadores"
@@ -141,13 +141,13 @@ cambiar_grupo() {
     fi
     
     nuevo_grupo=""
-    if [[ "$grupo_actual" == "reprobados" ]]; then
+    if [[ "$grupo_actual" == "reprobados" ]]; entonces
         nuevo_grupo="recursadores"
     else
         nuevo_grupo="reprobados"
     fi
     
-    if [[ -d "$usuario_path/$nuevo_grupo" ]]; then
+    if [[ -d "$usuario_path/$nuevo_grupo" ]]; entonces
         echo "Error: La carpeta del nuevo grupo ya existe."
         return
     fi
