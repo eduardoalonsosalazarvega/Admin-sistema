@@ -7,14 +7,14 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Verificar si ya está instalado vsftpd
-if systemctl list-unit-files | grep -q "vsftpd"; entonces
+if systemctl list-unit-files | grep -q "vsftpd"; then
     echo "vsftpd ya está instalado."
 else
     echo "Instalando vsftpd..."
-    sudo apt update && sudo apt install -y vsftpd 
+    sudo apt update && sudo apt install -y vsftpd
     sudo groupadd reprobados
     sudo groupadd recursadores
-    sudo groupadd ftpusers   
+    sudo groupadd ftpusers
 
     sudo sed -i 's/^anonymous_enable=.*/anonymous_enable=YES/' /etc/vsftpd.conf
     sudo sed -i 's/^#\(local_enable=YES\)/\1/' /etc/vsftpd.conf
@@ -53,22 +53,21 @@ sudo chown root:ftpusers "$PUBLIC_DIR"
 # Función para agregar un usuario FTP
 agregar_usuario() {
     read -p "Ingrese el nombre del usuario FTP: " FTP_USER
-    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] || ${#FTP_USER} -lt 4 || ${#FTP_USER} -gt 16 || "$FTP_USER" =~ ^(.)\1{5,}$ ]]; entonces
+    if [[ -z "$FTP_USER" || "$FTP_USER" =~ [^a-zA-Z0-9_] || ${#FTP_USER} -lt 4 || ${#FTP_USER} -gt 16 || "$FTP_USER" =~ ^(.)\1{5,}$ ]]; then
         echo "Error: Nombre de usuario no válido. Debe tener entre 4 y 16 caracteres alfanuméricos o guiones bajos."
         return
     fi
     read -p "Ingrese el grupo principal del usuario (reprobados, recursadores): " FTP_GROUP
-    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; entonces
+    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; then
         echo "Error: Grupo inválido. Debe ser 'reprobados' o 'recursadores'."
         return
     fi
 
     # Definir variables del usuario
-    user_sub_token=$FTP_USER
     local_root="/srv/ftp/$FTP_USER"
 
     echo "Creando usuario $FTP_USER..."
-    if id "$FTP_USER" &>/dev/null; entonces
+    if id "$FTP_USER" &>/dev/null; then
         echo "Error: El usuario ya existe."
         return
     fi
@@ -78,9 +77,9 @@ agregar_usuario() {
         echo
         read -s -p "Confirme la contraseña: " FTP_PASS2
         echo
-        if [[ "$FTP_PASS" != "$FTP_PASS2" ]]; entonces
+        if [[ "$FTP_PASS" != "$FTP_PASS2" ]]; then
             echo "Error: Las contraseñas no coinciden."
-        elif [[ ${#FTP_PASS} -lt 8 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] ]]; entonces
+        elif [[ ${#FTP_PASS} -lt 8 || ! "$FTP_PASS" =~ [A-Z] || ! "$FTP_PASS" =~ [a-z] || ! "$FTP_PASS" =~ [0-9] ]]; then
             echo "Error: La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número."
         else
             echo "$FTP_USER:$FTP_PASS" | sudo chpasswd
@@ -117,11 +116,11 @@ agregar_usuario() {
 cambiar_grupo() {
     read -p "Ingrese el nombre del usuario a cambiar de grupo: " nombre
     
-    if [[ -z "$nombre" || "$nombre" =~ [^a-zA-Z0-9_] ]]; entonces
+    if [[ -z "$nombre" || "$nombre" =~ [^a-zA-Z0-9_] ]]; then
         echo "Error: Nombre de usuario no válido. Solo se permiten caracteres alfanuméricos y guiones bajos."
         return
     fi
-    if ! id "$nombre" &>/dev/null; entonces
+    if ! id "$nombre" &>/dev/null; then
         echo "El usuario no existe."
         return
     fi
@@ -131,9 +130,9 @@ cambiar_grupo() {
 
     grupo_actual=""
     usuario_path="/srv/ftp/$nombre"
-    if [[ -d "$usuario_path/reprobados" ]]; entonces
+    if [[ -d "$usuario_path/reprobados" ]]; then
         grupo_actual="reprobados"
-    elif [[ -d "$usuario_path/recursadores" ]]; entonces
+    elif [[ -d "$usuario_path/recursadores" ]]; then
         grupo_actual="recursadores"
     else
         echo "El usuario no tiene grupo asignado."
@@ -141,13 +140,13 @@ cambiar_grupo() {
     fi
     
     nuevo_grupo=""
-    if [[ "$grupo_actual" == "reprobados" ]]; entonces
+    if [[ "$grupo_actual" == "reprobados" ]]; then
         nuevo_grupo="recursadores"
     else
         nuevo_grupo="reprobados"
     fi
     
-    if [[ -d "$usuario_path/$nuevo_grupo" ]]; entonces
+    if [[ -d "$usuario_path/$nuevo_grupo" ]]; then
         echo "Error: La carpeta del nuevo grupo ya existe."
         return
     fi
@@ -160,7 +159,7 @@ cambiar_grupo() {
     sudo umount -l "$usuario_path/$grupo_actual"
     sleep 1
     # Eliminar directorio solo si ya no está en uso
-    if ! mountpoint -q "$usuario_path/$grupo_actual"; entonces
+    if ! mountpoint -q "$usuario_path/$grupo_actual"; then
         sudo rm -r "$usuario_path/$grupo_actual"
     fi
     sudo mount --bind "$GROUPS_DIR/$nuevo_grupo" "$usuario_path/$nuevo_grupo"
@@ -169,7 +168,7 @@ cambiar_grupo() {
     sync
     
     echo "Usuario $nombre ahora pertenece a $nuevo_grupo."
-    if ! systemctl is-active --quiet vsftpd; entonces
+    if ! systemctl is-active --quiet vsftpd; then
         echo "Error: vsftpd no está activo. Intentando reiniciar..."
         sudo systemctl restart vsftpd
     else
