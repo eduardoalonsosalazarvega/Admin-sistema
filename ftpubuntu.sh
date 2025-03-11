@@ -51,11 +51,14 @@ agregar_usuario() {
         return
     fi
     
-    read -p "Ingrese el grupo principal del usuario (reprobados, recursadores): " FTP_GROUP
-    if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; then
-        echo "Error: Grupo inválido."
-        return
-    fi
+    while true; do
+        read -p "Ingrese el grupo principal del usuario (reprobados, recursadores): " FTP_GROUP
+        if [[ "$FTP_GROUP" != "reprobados" && "$FTP_GROUP" != "recursadores" ]]; then
+            echo "Error: Grupo inválido. Debe ser 'reprobados' o 'recursadores'."
+        else
+            break
+        fi
+    done
     
     if id "$FTP_USER" &>/dev/null; then
         echo "Error: El usuario ya existe."
