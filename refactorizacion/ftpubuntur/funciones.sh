@@ -1,5 +1,5 @@
 #!/bin/bash
-Configuraciones() {
+configuraciones() {
 # Verificar que se ejecute como root
 if [[ $EUID -ne 0 ]]; then
     echo "Este script debe ejecutarse como root"
