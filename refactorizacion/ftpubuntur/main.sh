@@ -3,7 +3,6 @@
 source funciones.sh
 
 configuraciones
-mostrar_menu
 
 # Reiniciar servicio vsftpd
 echo "Reiniciando servicio FTP..."
@@ -17,3 +16,4 @@ sudo chmod 755 /home/ftp
 # Configuración del firewall
 echo "Configurando firewall..."
 sudo ufw allow 21/tcp
+mostrar_menu
