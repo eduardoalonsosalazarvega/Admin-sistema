@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Importar funciones
-source ./ftp_functions.sh
+source ./funciones.sh
 
 # Verificar permisos
 check_root
