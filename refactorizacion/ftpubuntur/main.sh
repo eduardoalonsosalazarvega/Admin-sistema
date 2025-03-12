@@ -1,22 +1,34 @@
 #!/bin/bash
 
-# Incluir el archivo de funciones
-source funciones.sh
+# Importar funciones
+source ./ftp_functions.sh
 
-# Verificar que el script se ejecuta como root
-verificar_root
+# Verificar permisos
+check_root
 
-# Instalar vsftpd si no está instalado
-instalar_vsftpd
+# Instalar y configurar vsftpd
+install_vsftpd
+setup_vsftpd
+setup_directories
+setup_security
+restart_vsftpd
 
-# Configurar estructura de directorios y permisos
-configurar_estructura
+# Mostrar menú
+mostrar_menu() {
+    while true; do
+        echo "===== MENÚ DE ADMINISTRACIÓN FTP ====="
+        echo "1) Agregar un usuario FTP"
+        echo "2) Cambiar de grupo a un usuario FTP"
+        echo "3) Salir"
+        read -p "Seleccione una opción: " opcion
 
-# Configurar firewall
-configurar_firewall
+        case $opcion in
+            1) agregar_usuario ;;
+            2) cambiar_grupo ;;
+            3) echo "Saliendo..."; exit 0 ;;
+            *) echo "Opción no válida, intente de nuevo." ;;
+        esac
+    done
+}
 
-# Reiniciar el servicio FTP
-reiniciar_servicio
-
-# Mostrar el menú de administración
 mostrar_menu
