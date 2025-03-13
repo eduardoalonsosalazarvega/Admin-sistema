@@ -74,7 +74,7 @@ conf_nginx(){
 
     #Descargar e instalar la versión seleccionada
     cd /tmp
-    wget "https://nginx.org/download/nginx-$version.tar.gz"
+    wget -q https://nginx.org/download/nginx-$version.tar.gz
     tar -xzvf nginx-$version.tar.gz > /dev/null 2>&1
     cd nginx-$version
 
