@@ -20,7 +20,7 @@ while true; do
     if [ "$op" -eq 1 ]; then
         versions=$(obtener_version "Apache")
         stable=$(echo "$versions" | head -1)
-        menu_http2 "Apache" "$stable" " "
+        menu_http2 "Apache" "$stable" "$mainline"
         echo "Elija la versión que desea instalar: "
         op2=$(solicitar_ver "Apache") 
         if [ "$op2" -eq 1 ]; then
