@@ -1,6 +1,5 @@
 #!/bin/bash
-source "./variables/variables_http.sh"
-source "./configuracion/instalar_dependenciashttp.sh"
+source "./instalar_dependencias.sh"
 
 conf_litespeed(){
     local port="$1"

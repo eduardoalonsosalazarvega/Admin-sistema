@@ -1,10 +1,10 @@
 #!/bin/bash
 
-source "./httprub/menu_http.sh"
-source "./httprub/obtenerversion.sh"
-source "./httprub/solicitarv.sh"
-source "./httprub/solicitarpuerto.sh"
-source "./httprub/configuraciones.sh"
+source "./menu_http.sh"
+source "./obtenerversion.sh"
+source "./solicitarv.sh"
+source "./solicitarpuerto.sh"
+source "./configuraciones.sh"
 
 if [[ $EUID -ne 0 ]]; then
     echo "Este script debe ejecutarse como root" 
