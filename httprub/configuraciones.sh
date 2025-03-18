@@ -8,8 +8,7 @@ conf_litespeed(){
 
     cd /tmp
     # Variable URL para descargar la version
-    url="https://openlitespeed.org/packages/openlitespeed-$version.tgz"
-
+    url="https://openlitespeed.org/packages/$version.tgz"
 
     wget -O litespeed.tgz "$url"
     #Extraer archivos
