@@ -19,3 +19,4 @@ obtener_version(){
 
     echo "$versions"
 }
+#todo v
