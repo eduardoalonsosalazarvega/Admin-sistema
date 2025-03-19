@@ -3,7 +3,7 @@ obtener_version(){
     local service="$1"
     case "$service" in
         Apache)
-            versions=$(curl -s "https://downloads.apache.org/httpd/" |  grep -oP '(?<=Apache HTTP Server-)\d+\.\d+\.\d+' | sort -V | uniq)
+            versions=$(curl -s "https://downloads.apache.org/httpd/" |  grep -oP '(?<=Apache HTTP Server)\d+\.\d+\.\d+' | sort -V | uniq)
             ;;
         Nginx)
             versions=$(curl -s "https://nginx.org/en/download.html" |  grep -oP '(?<=nginx-)\d+\.\d+\.\d+' | sort -V | uniq)
