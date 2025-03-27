@@ -38,7 +38,7 @@ EOL
 cert_nginx() {
     local port="$1"
     local nginx_ssl_dir="/etc/nginx/ssl"
-    local nginx_conf="/etc/nginx/nginx.conf"
+    local nginx_conf="/usr/local/nginx/sbin/nginx"
 
     echo "Generando certificado SSL para Nginx en el puerto $port..."
     sudo mkdir -p "$nginx_ssl_dir"
