@@ -4,7 +4,6 @@ source "./conf_dns.sh"
 source "./conf_correo.sh"
 source "./crear_user.sh"
 source "./solicitar_user.sh"
-source "./verificar_servicio.sh"
 
 # Verificar si el script se ejecuta como root
 if [[ $EUID -ne 0 ]]; then
