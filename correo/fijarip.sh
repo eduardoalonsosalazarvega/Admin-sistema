@@ -1,7 +1,7 @@
 #!/bin/bash
 #ip_address=$1
 
-echo "Configurando IP estática en 192.168.0...."
+echo "Configurando IP estática en 192.168.0....."
 
 sudo tee /etc/netplan/50-cloud-init.yaml > /dev/null <<EOT
 network:
