@@ -1,7 +1,7 @@
 #!/bin/bash
-
 #Importar las funciones desde su archivo
-source ./funciones.sh
+source "./funciones.sh"
+
 
 Instalar_Docker
 
